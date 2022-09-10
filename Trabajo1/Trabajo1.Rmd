@@ -47,6 +47,69 @@ library(pander)
 
 \subsection{Literal a}
 
+$$
+\begin{aligned}
+\text{Sea }X: \text{Costo del recl}& \text{amo de cierto tipo de fachada de vidrio.} \\
+X &\sim LogN(\mu, \sigma)
+\end{aligned}
+$$
+
+Según la información del enunciado, se tiene:
+
+$$
+\begin{cases}
+\bar{X} = 120 \\
+S^2 = 15^2
+\end{cases}
+$$
+
+Usando el método de los momentos, se tiene:
+
+
+\begin{equation}
+E[X] = \exp\left(\mu+ \frac{\sigma^2}{2}\right) = 120 = \bar{X}
+\end{equation}
+
+\begin{equation}
+Var[X] = \exp\left(2\mu + \sigma^2\right) \left(e^{\sigma^2} - 1 \right) = 15^2 =S^2
+\end{equation}
+
+Note que $E^2[X] = \exp(2\mu + \sigma^2)$ luego, al dividir la ecuación (2) sobre dicha cantidad se obtiene:
+
+$$
+\frac{\exp\left(2\mu + \sigma^2\right) \left(e^{\sigma^2} - 1 \right)}{\exp(2\mu + \sigma^2)} = e^{\sigma^2}-1 = \frac{15^2}{120^2}
+$$
+De esta última expresión se puede despejar fácilmente $\sigma^2$
+
+$$
+\sigma^2 = \log\left(\frac{15^2}{120^2} + 1\right)
+$$
+```{r}
+sigma <- sqrt(log((15/120)^2 + 1))
+```
+
+
+\begin{equation}
+\hat{\sigma} = \sqrt{\log\left(\frac{15^2}{120^2} + 1\right)} \approx `r round(sigma, 4)`
+\end{equation}
+
+Reemplazando la ecuación (3) en (1) se obtiene
+
+$$
+\exp\left(\mu + \frac{`r round(sigma, 4)`}{2}\right) = 120
+$$
+
+```{r}
+mu <- log(120) - sigma^2/2
+```
+
+
+\begin{equation}
+\hat{\mu} = \log(120) - \frac{0.1245^2}{2} \approx `r round(mu, 4)`
+\end{equation}
+
+Por lo tanto $X \sim LogN(\hat{\mu} = `r round(mu, 4)`,\ \hat{\sigma} = `r round(sigma, 4)`)$
+
 \subsection{Literal b}
 
 \section{Punto 2}
