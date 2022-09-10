@@ -45,7 +45,7 @@ library(pander)
 
 1500 reclamos en relación al seguro de cierto tipo de fachada de vidrio revela un costo medio por reclamo de $120 y una desviación estándar de $15. Asumiendo que el costo de los reclamos X posee una distribución log-normal.
 
-\subsection{Literal a}
+\subsection{Estimación de parámetros}
 
 $$
 \begin{aligned}
@@ -79,6 +79,7 @@ Note que $E^2[X] = \exp(2\mu + \sigma^2)$ luego, al dividir la ecuación (2) sob
 $$
 \frac{\exp\left(2\mu + \sigma^2\right) \left(e^{\sigma^2} - 1 \right)}{\exp(2\mu + \sigma^2)} = e^{\sigma^2}-1 = \frac{15^2}{120^2}
 $$
+
 De esta última expresión se puede despejar fácilmente $\sigma^2$
 
 $$
@@ -110,7 +111,30 @@ mu <- log(120) - sigma^2/2
 
 Por lo tanto $X \sim LogN(\hat{\mu} = `r round(mu, 4)`,\ \hat{\sigma} = `r round(sigma, 4)`)$
 
+\subsection{Literal a}
+
+Se quiere hallar el costo $x$ que cumpla:
+
+$$
+P(X \leq x) = \frac{800}{1500} \Leftrightarrow 1 - P(X > x) = 1 - \frac{800}{1500} = \frac{700}1500{}
+$$
+
+Es decir, dicho valor $x$ se puede encontrar como cuantil superior o cuantil inferior. Gracias a la función `qlnorm()` del paquete básico `stats` de R, se encuentra que el valor que cumple la probabilidad especficada es $x = `r round(qlnorm(800/1500, mu, sigma), 4)`$
+
 \subsection{Literal b}
+
+Para estimar el número total de reclamos en la muestra con costo menor a 100\$ se multiplicara la proporción de estos por el número total de reclamos, es decir, $1500\cdot p$. La proporción $p$ se estima como:
+
+```{r}
+p <- plnorm(100, mu, sigma)
+```
+
+
+$$
+P(X < 100) = `r round(p, 4)`
+$$
+Esta probabilidad es calculada gracias a la función `plnorm()` del paquete básico de R `stats`. \newline
+Por lo tanto, se estima que el número de reclamos cuyo costo es menor a 100\$ es `r round(p*1500, 4)` $\approx$ `r round(p*1500)`.
 
 \section{Punto 2}
 
