@@ -208,6 +208,7 @@ kable(tabla1[,2:3], align = 'c', caption = "Tabla 1", longtable = T, booktabs = 
       col.names = c("Fecha", "Pólizas"))
 ```
 
+\newpage
 
 \subsection{Literal a}
 
@@ -374,6 +375,8 @@ kable(tabla4, longtable = T, booktabs = T, align = "c",
 ```
 
 Con la anterior tabla, se puede proceder a construir la segunda columna de la tabla del patrón de definición expresando las severidades medias como porcentajes de la última severidad media:
+
+\newpage
 
 La última severidad media fué $\frac{6972}{8}$:
 
