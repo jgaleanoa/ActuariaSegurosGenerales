@@ -43,7 +43,9 @@ library(pander)
 
 \section{Punto 1}
 
-1500 reclamos en relación al seguro de cierto tipo de fachada de vidrio revela un costo medio por reclamo de $120 y una desviación estándar de $15. Asumiendo que el costo de los reclamos X posee una distribución log-normal.
+1500 reclamos en relación al seguro de cierto tipo de fachada de vidrio revela
+un costo medio por reclamo de $120 y una desviación estándar de $15. Asumiendo
+que el costo de los reclamos X posee una distribución log-normal.
 
 \subsection{Estimación de parámetros}
 
@@ -63,7 +65,7 @@ S^2 = 15^2
 \end{cases}
 $$
 
-Usando el método de los momentos, se tiene:
+Usando el método de los momentos, se estiman los parámetros
 
 
 \begin{equation}
@@ -116,14 +118,19 @@ Por lo tanto $X \sim LogN(\hat{\mu} = `r round(mu, 4)`,\ \hat{\sigma} = `r round
 Se quiere hallar el costo $x$ que cumpla:
 
 $$
-P(X \leq x) = \frac{800}{1500} \Leftrightarrow 1 - P(X > x) = 1 - \frac{800}{1500} = \frac{700}1500{}
+P(X \leq x) = \frac{800}{1500} \Leftrightarrow 1 - P(X > x) = 1 - \frac{800}{1500} = \frac{700}{1500}
 $$
 
-Es decir, dicho valor $x$ se puede encontrar como cuantil superior o cuantil inferior. Gracias a la función `qlnorm()` del paquete básico `stats` de R, se encuentra que el valor que cumple la probabilidad especficada es $x = `r round(qlnorm(800/1500, mu, sigma), 4)`$
+Es decir, dicho valor $x$ se puede encontrar como cuantil superior o cuantil
+inferior. Gracias a la función `qlnorm()` del paquete básico `stats` de R, se
+encuentra que el valor que cumple la probabilidad especficada es 
+$x = `r round(qlnorm(800/1500, mu, sigma), 4)`$
 
 \subsection{Literal b}
 
-Para estimar el número total de reclamos en la muestra con costo menor a 100\$ se multiplicara la proporción de estos por el número total de reclamos, es decir, $1500\cdot p$. La proporción $p$ se estima como:
+Para estimar el número total de reclamos en la muestra con costo menor a 100\$
+se multiplicara la proporción de estos por el número total de reclamos, es
+decir, $1500\cdot p$. La proporción $p$ se estima como:
 
 ```{r}
 p <- plnorm(100, mu, sigma)
@@ -133,8 +140,10 @@ p <- plnorm(100, mu, sigma)
 $$
 P(X < 100) = `r round(p, 4)`
 $$
-Esta probabilidad es calculada gracias a la función `plnorm()` del paquete básico de R `stats`. \newline
-Por lo tanto, se estima que el número de reclamos cuyo costo es menor a 100\$ es `r round(p*1500, 4)` $\approx$ `r round(p*1500)`.
+Esta probabilidad es calculada gracias a la función `plnorm()` del paquete
+básico de R `stats`. \newline
+Por lo tanto, se estima que el número de reclamos cuyo costo es menor a 100\$
+es `r round(p*1500, 4)` $\approx$ `r round(p*1500)`.
 
 \section{Punto 2}
 
@@ -143,9 +152,51 @@ un mes puede asumirse con una distribución de Poisson con media de 0.01,
 calcule cuantas entre 80000 pólizas similares se esperan que den origen a más
 de 2 reclamos cada una en un año.
 
+**Solución**
+
+$$
+\begin{aligned}
+\text{Sea }X: \text{Número de }&  \text{reclamos por póliza en un mes} \\
+X &\sim Poisson(0.01)
+\end{aligned}
+$$
+
+Se sabe que una variable aleatoria Poisson se usa cuando el fenómeno en
+cuestión es la ocurrencia de un evento de interés por unidad de tiempo o
+espacio; para el caso presentado se tiene la ocurrencia de reclamos por mes
+(unidad de tiempo). Se denota $\lambda_{\frac{1}{12}}$ como la media de
+ocurrencia de reclamos por mes, la cual se sabe que es $0.01$.
+
+Como se quiere estimar el número de pólizas que den origen a más de dos
+reclamos en un año, se define $Y:$ Número de reclamos por póliza en un año.
+\newline
+Al tratarse de las mismas pólizas de la variable aleatoria $X$, $Y$ también
+seguirá una distribución de Poisson pero con una media diferente $\lambda_1$. 
+
+$$
+\begin{aligned}
+0.01 &\rightarrow \frac{1}{12} \\
+\lambda_1 &\rightarrow  1 \\
+\Leftrightarrow \lambda_1 &= 12 \cdot0.01 = 0.12 
+\end{aligned}
+$$
+
+Luego $Y \sim Poisson(0.12)$, por lo que el número de pólizas que presentarán
+más de dos reclamos en un año de un total de 80000 se puede estimar como
+
+$$
+80000 \cdot P(Y > 2) = `r round(80000 * ppois(2, 0.12, lower.tail = F), 4)` \approx `r round(80000 * ppois(2, 0.12, lower.tail = F))`
+$$
+Es decir, se espera que 21 de 80000 pólizas presenten más de dos reclamos en
+un año.
+
 \section{Punto 3}
 
-El número de pólizas en fuerza al comienzo de cada trimestre durante 1997 para cierto tipo de seguro está consolidado en la Tabla 1. 73 reclamos se han definidos hacia el final de 1998 en relación a incidentes ocurridos durante 1997 con un costo de $37943. 15 reclamos adicionales se han notificado, pero no se han definido.
+El número de pólizas en fuerza al comienzo de cada trimestre durante 1997 para
+cierto tipo de seguro está consolidado en la Tabla 1. 73 reclamos se han
+definidos hacia el final de 1998 en relación a incidentes ocurridos durante
+1997 con un costo de $37943. 15 reclamos adicionales se han notificado, pero
+no se han definido.
 
 ```{r}
 tabla1 <- data.frame(idx = 1:5,
