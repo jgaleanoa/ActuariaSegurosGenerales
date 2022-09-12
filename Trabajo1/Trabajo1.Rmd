@@ -274,7 +274,7 @@ kable(tabla2,  align = 'c', longtable = T, escape = F, booktabs = T,
 La severidad media para finales del 98 se calcula teniendo en cuenta los incidentes definidos y el costo total de dichos incidentes. El procedimiento se muestra como sigue:
 
 $$
-\text{Severidad Media}_{98} = \frac{\text{Costo total reclamos}}{\text{Reclamos}} = \frac{37943}{73} = 520
+\text{Severidad Media}_{98} = \frac{\text{Costo total reclamos}}{\text{Reclamos}} = \frac{37943}{73} = 519.7671\approx 520
 $$
 Como esta cantidad está en dólares de 1998, es necesario hacer el respectivo ajuste por inflación para obtener la severidad media en dólares de 1997. Esto se realiza como sigue:
 
@@ -285,7 +285,7 @@ $$
 
 Contando con que los reclamos relacionados al año 1997 se originan en incidentes ocurridos a mitad de año, al final del 1998, habrán pasado seis trimestres desde dichos incidentes.
 
-Es posible además aseverar que pasados seis semestres se espera que la severidad en dicho momento como proporción de la severidad total final es un 58% (Tabla 2).
+Es posible además aseverar que pasados seis trimestres se espera que la severidad en dicho momento como proporción de la severidad total final es un 58% (Tabla 2).
 
 De esta manera, se puede calcular la prima $P_0$ obviando ajustes por inflación. Si se supone que la tasa de frecuencia de los reclamos es constante, entonces:
 
@@ -376,9 +376,7 @@ kable(tabla4, longtable = T, booktabs = T, align = "c",
 
 Con la anterior tabla, se puede proceder a construir la segunda columna de la tabla del patrón de definición expresando las severidades medias como porcentajes de la última severidad media:
 
-\newpage
-
-La última severidad media fué $\frac{6972}{8}$:
+La última severidad media fue $\frac{6972}{8}$:
 
 \begin{itemize}
 \item Hasta el primer trimestre: $\frac{\frac{99}{1}}{\frac{6972}{8}}*100 = 11.36 \approx 11$\\
