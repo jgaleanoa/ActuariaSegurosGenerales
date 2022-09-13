@@ -246,7 +246,7 @@ Asumiendo que los reclamos relacionados al año 1997 se originan a mitad de año
 Así entonces, la tasa de frecuencia se obtiene como sigue:
 
 $$
-\lambda_{97} = \frac{\text{TRE}}{\text{Exposición}} = \frac{86}{6633} = 0.011
+\lambda_{97} = \frac{\text{TRE}}{\text{Exposición}} = \frac{86}{6633} = 0.01296548 \approx 0.013
 $$
 \subsection{Literal b}
 
@@ -290,18 +290,18 @@ Es posible además aseverar que pasados seis trimestres se espera que la severid
 De esta manera, se puede calcular la prima $P_0$ obviando ajustes por inflación. Si se supone que la tasa de frecuencia de los reclamos es constante, entonces:
 
 $$
-P_0 = \lambda_{97}*\text{Severidad Media}_{Final} = \lambda_{97}*\frac{\text{Severidad Media}_{97}}{0.58} = 0.011*\frac{473}{0.58}
+P_0 = \lambda_{97}*\text{Severidad Media}_{Final} = \lambda_{97}*\frac{\text{Severidad Media}_{97}}{0.58} = 0.013*\frac{473}{0.58}
 $$
 Después de esto es necesario ajustar según la inflación a la prima $P_0$ para obtener la cantidad P que debe ser cobrada en el año 99 teniendo en cuenta que los pagos serán realizados en promedio tres años después del reclamo:
 
 $$
-P = P_0*(1.1)^{0.5}*(1.15)^5 \approx 18.94 \text{ dólares}
+P = P_0*(1.1)^{0.5}*(1.15)^5 \approx 18.92 \text{ dólares}
 $$
 \subsection{Literal d}
 Para calcular la prima neta a cobrar, se tiene que el 0.3 de la misma va a gastos de administración y comisión. Es decir, el 70% de la prima neta es utilizada para cubrir el riesgo. Esto es que la prima neta (PN) se puede obtener de la siguiente manera:
 
 $$
-0.7*PN=P \rightarrow PN = \frac{P}{0.7} = \frac{18.94}{0.7} = 27.1 \text{ dólares}
+0.7*PN=P \rightarrow PN = \frac{P}{0.7} = \frac{18.92}{0.7} = 27.1 \text{ dólares}
 $$
 \section{Punto 4}
 
