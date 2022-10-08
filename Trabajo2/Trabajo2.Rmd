@@ -1,0 +1,75 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document: 
+    number_sections: yes
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
+options(knitr.kable.NA = '')
+library(knitr)
+library(ggplot2)
+library(pander)
+```
+
+```{=tex}
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
+
+\section{Punto 1}
+
+La distribución de severidad de los reclamos de determinado riesgo es Log-Normal con media 980\$ y desviación estándar de 1560\$. La tasa de reclamos es 0.05. Un **tratado de reaseguro de exceso de perdida** se ha firmado, en el cual un reasegurador cubre los excesos de un reclamo "sobre y por encima" de 2000\$. Calcule la prima de **reaseguro** en relación a 1500 pólizas.
+
+\section{Punto 2}
+
+\subsection{Literal a} 
+
+Determine la matriz de transición $P$ que determina la evolución en el tiempo de las proporciones de asegurados en varias categorías.
+
+\subsection{Literal b}
+
+Escriba las ecuaciones que conectan los números de asegurados en las diferentes categorías cuando la estabilidad se ha alcanzado $(\pi = \pi P)$. Asuma un total de 10000 asegurados, sin salidas.
+
+\subsection{Literal c}
+
+Resuelva las ecuaciones del item anterior, utilice una rutina de computador y obtenga los números de asegurados en varias categorías cuando la frecuencia de reclamos es:
+
+* $q = 0.1$
+* $q = 0.2$
+
+\subsection{Literal d}
+
+Asumiendo que inicialmente los 10000 asegurados se encuentran en la categoría sin descuento 0\%, estime el número esperado de asegurados en cada categoría en los años $t = 1,\ 2,\ 3,\ 4\ \text{y}\ 5$.
+
+\subsection{Literal e}
+
+Si la prima neta del seguro es de 300\$ calcule el ingreso por primas en
+cada uno de los años del punto anterior.
+
+
+
