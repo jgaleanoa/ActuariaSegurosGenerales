@@ -45,7 +45,7 @@ library(pander)
 
 La distribución de severidad de los reclamos de determinado riesgo es Log-Normal con media 980\$ y desviación estándar de 1560\$. La tasa de reclamos es 0.05. Un **tratado de reaseguro de exceso de perdida** se ha firmado, en el cual un reasegurador cubre los excesos de un reclamo "sobre y por encima" de 2000\$. Calcule la prima de **reaseguro** en relación a 1500 pólizas.
 
-**solución**
+**Solución**
 
 Considere a $X:$ Tamaño del reclamo para determinado riesgo. Asuma además que $X \sim LogNormal(\mu, \sigma)$.
 
@@ -211,12 +211,78 @@ $$
 
 Resuelva las ecuaciones del item anterior, utilice una rutina de computador y obtenga los números de asegurados en varias categorías cuando la frecuencia de reclamos es:
 
-* $q = 0.1$
-* $q = 0.2$
+* $\lambda_1 = 0.1$
+* $\lambda_2 = 0.2$
+
+**Solución**
+
+Suponga que el número de reclamos posee una distribución Poisson especificada de la siguiente manera:
+
+$$
+p_0 = e^{-\lambda}
+$$
+Así, reemplazando sucesivamente en lo obtenido arriba, se tienen las siguientes cantidades:
+
+\begin{equation*}
+\begin{split}
+\lambda_1 &= 0.1\\
+p_0 &= e^{-\lambda_1} = e^{-0.1} = 0.905
+\end{split}
+\end{equation*}
+
+Con esto, se pueden obtener $\{x_i\}_{i=0}^2$ como el número de asegurados cuando se alcanza la estabilidad:
+
+\begin{equation*}
+\begin{split}
+x_0 &= (1-p_0) \cdot 10000 \approx 952\\
+x_1 &= 10000 \cdot p_0 \cdot(1 - p_0) \approx 861\\
+x_2 &= 10000 \cdot p_0^2 \approx 8187
+\end{split}
+\end{equation*}
+
+Del mismo modo se puede proceder para $\lambda_2 = 0.2$. Y con esto, lo obtenido se resume en la siguiente tabla:
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|ccc|ccc|}
+\hline
+           & \multicolumn{3}{c|}{$\lambda = 0.1$}                       & \multicolumn{3}{c|}{$\lambda = 0.2$}                         \\ \hline
+Categoría  & \multicolumn{1}{c|}{0}   & \multicolumn{1}{c|}{1}   & 2    & \multicolumn{1}{c|}{0}    & \multicolumn{1}{c|}{1}    & 2    \\ \hline
+Asegurados & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861} & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
+\end{tabular}
+\caption{Número de asegurados por categoría}
+\end{table}
 
 \subsection{Literal d}
 
 Asumiendo que inicialmente los 10000 asegurados se encuentran en la categoría sin descuento 0\%, estime el número esperado de asegurados en cada categoría en los años $t = 1,\ 2,\ 3,\ 4\ \text{y}\ 5$.
+
+**Solución**
+
+El número esperado de asegurados en para un instante de tiempo $t$ viene dado por:
+
+$$
+\textbf{v}^{(0)}P = \textbf{v}^{(t)}
+$$
+
+donde $\textbf{v}^{(t)} = \left[v_0^{(t)} \ v_1^{(t)} \ v_2^{(t)}\right]$ es la distribución marginal del número de asegurados en cada una de las categorías al instante $t$.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|lll|lll|}
+\hline
+       & \multicolumn{3}{l|}{$\lambda_1 = 0.1$}                                    & \multicolumn{3}{l|}{$\lambda_2 = 0.2$}                                     \\ \hline
+Tiempo & \multicolumn{1}{l|}{0}   & \multicolumn{1}{l|}{1}    & 2    & \multicolumn{1}{l|}{0}    & \multicolumn{1}{l|}{1}    & 2    \\ \hline
+1      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{9048} & 0    & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{8187} & 0    \\ \hline
+2      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
+3      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
+4      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
+5      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
+\end{tabular}
+\caption{Asegurados por categoría en el tiempo $t$}
+\label{}
+\end{table}
 
 \subsection{Literal e}
 
