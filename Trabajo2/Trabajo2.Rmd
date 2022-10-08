@@ -45,15 +45,167 @@ library(pander)
 
 La distribución de severidad de los reclamos de determinado riesgo es Log-Normal con media 980\$ y desviación estándar de 1560\$. La tasa de reclamos es 0.05. Un **tratado de reaseguro de exceso de perdida** se ha firmado, en el cual un reasegurador cubre los excesos de un reclamo "sobre y por encima" de 2000\$. Calcule la prima de **reaseguro** en relación a 1500 pólizas.
 
+**solución**
+
+Considere a $X:$ Tamaño del reclamo para determinado riesgo. Asuma además que $X \sim LogNormal(\mu, \sigma)$.
+
+Se sabe que para $X$, los parámetros se encuentran dados por las siguientes expresiones:
+
+\begin{equation*}
+\sigma = \sqrt{ln\left(\frac{Var[X]}{E[X]^2}+1\right)}
+       = \sqrt{ln\left(\frac{1560^2}{980^2}+1\right)}
+       \approx 1.1236
+\end{equation*}
+
+\begin{equation*}
+\mu = ln(E[X])-\frac{\sigma^2}{2} = ln(980)-\frac{1.1236^2}{2} \approx 6.2563
+\end{equation*}
+
+Por otro lado, se considera $C:$ Número de reclamos. Así pues $E[C]= \lambda \cdot 1500 = 0.05 \cdot 1500 = 75$, es decir, de las 1500 pólizas vigentes, el valor esperado del número de reclamos es 75.
+
+Adicionalmente, de dichos 75 reclamos esperados, no todos van a ser superiores o iguales a \$2000, por lo ue es necesario hacer uso de la distribución especificada para el tamaño de los reclamos y así determinar cuál será la proporción $p$ de reclamos que incurrirán en el reaseguro.
+
+\begin{equation*}
+p = P(X \geq 2000) \approx 0.1157
+\end{equation*}
+
+Por lo tanto, se puede afirmar que se espera que el número de reclamos superiores o iguales a 2000 será $N_{2000} = 75 \cdot p = 75 \cdot 0.1157 \approx 8.68$
+
+Por otro lado, es necesario además calcular el valor esperado del tamaño de los reclamos, cuando estos son superiores o iguales a \$2000:
+
+\begin{equation*}
+\begin{split}
+E[X|X \geq 2000] &= \frac{1}{P(X \geq 2000)} \cdot \int_{2000}^\infty x \cdot f_x(x) \cdot dx\\
+&= \frac{461.44}{0.1157} \approx \$3988.3
+\end{split}
+\end{equation*}
+
+Donde $f_x(x)$ es la densidad de $X$.
+
+Se espera que el costo total de todos los reclamos que tenga que asumir la reaseguradora sea de:
+
+\begin{equation*}
+\begin{split}
+T &= (E[X|X \geq 2000]-2000) \cdot N_{2000}\\
+  &= 1988.3 \cdot 8.68 \approx \$17258.5
+\end{split}
+\end{equation*}
+
+En la expresión anterior, se restan \$2000 puesto que la reaseguradura cubrirá solamente el exceso. Los 2000 iniciales serán cubiertos por la aseguradora inicial.
+
+Así pues, finalmente la prima de reaseguro sin contar los cargos de otro tipo es:
+
+\begin{equation*}
+P = \frac{T}{\text{Número total de pólizas}} = \frac{17258.5}{1500} = \$11.6
+\end{equation*}
+
+Es decir, la aseguradora inicial tendrá que pagar \$11.6 por cada una de las 1500 pólizas para reasegurarlas. De este modo, la aseguradora recaudará el valor esperado del costo total de todos los reclamos.
+
 \section{Punto 2}
 
-\subsection{Literal a} 
+Un asegurador opera un sistema NCD con descuentos de 0 \%, 30 \%
+y 50 \%. En el evento de un año libre de reclamos, el asegurado se mueve a la
+categoría inmediata con mayor nivel de descuento. Un reclamo causa que el
+asegurado descienda a la categoría sin descuento 0\%.
+
+\subsection{Literal a}
 
 Determine la matriz de transición $P$ que determina la evolución en el tiempo de las proporciones de asegurados en varias categorías.
+
+**Solución**
+
+Se denota por $p_0$ a la probabilidad de no realizar reclamos, luego la matriz de transición se escribe como:
+
+$$
+P = \begin{bmatrix}
+  1 - p_0 \hspace{.2in} p_0 \hspace{.2in} 0 \\
+  1 - p_0 \hspace{.2in} 0 \hspace{.2in} p_0 \\
+  1 - p_0 \hspace{.2in} 0 \hspace{.2in} p_0
+\end{bmatrix}
+$$
+donde las filas representan el estado actual del asegurado y las columnas el estado futuro, luego la entrada $ij$ representa la probabilidad de que un asegurado pase del estado $i$ al estado $j$.
 
 \subsection{Literal b}
 
 Escriba las ecuaciones que conectan los números de asegurados en las diferentes categorías cuando la estabilidad se ha alcanzado $(\pi = \pi P)$. Asuma un total de 10000 asegurados, sin salidas.
+
+**Solución**
+
+Sea $X_i:$ Número de asegurados en la $i$-ésima categoría. \newline
+Al asumir un total de 10000 asegurados sin salidas, se tiene:
+
+\begin{equation}
+x_0 + x_1 + x_2 = 10000
+\end{equation}
+
+Sea $\pi = [x_0 \ x_1 \ x_2]$, luego:
+
+$$
+\begin{aligned}
+\pi P &= [x_0 \ x_1 \ x_2] \begin{bmatrix}
+                              1 - p_0 \hspace{.2in} p_0 \hspace{.2in} 0 \\
+                              1 - p_0 \hspace{.2in} 0 \hspace{.2in} p_0 \\
+                              1 - p_0 \hspace{.2in} 0 \hspace{.2in} p_0
+                          \end{bmatrix} \\
+      &= \begin{bmatrix} 
+              (1 - p_0)(x_0 + x_1 + x_2) \\
+              p_0 \cdot x_0 \\
+              p_0 (x_1 + x_2)
+          \end{bmatrix}^T \\
+\end{aligned}
+$$
+
+Del anterior producto matricial se obtienen las siguientes ecuaciones
+
+\begin{equation}
+x_0 = (1 - p_0)(x_0 + x_1 + x_2)
+\end{equation}
+
+\begin{equation}
+x_1 = p_0 \cdot x_0
+\end{equation}
+
+\begin{equation}
+x_2 = p_0 \ (x_1 + x_2)
+\end{equation}
+
+Dado el supuesto inicial de la ecuación (1), (2) termina determinada como:
+
+\begin{equation}
+x_0 = 10000 \ (1 - p_0)
+\end{equation}
+
+Reemplazando la ecuación (5) en la (3) se obtiene
+
+\begin{equation}
+x_1 = p_0 \cdot (10000 \ (1 - p_0)) = 10000 \cdot p_0 \ (1 - p_0)
+\end{equation}
+
+respecto al valor de $x_2$, se usará inicialmente el siguiente despeje con el propósito de simplificar la expresión:
+
+$$
+\begin{aligned}
+x_2 &= p_0 x_1 + p_0 x_2 \\
+x_2 - p_0 x_2 &= p_0x_1 \\
+x_2(1 - p_0) &= p_0 x_1 \\
+x_2 &= \frac{p_0 x_1}{1 - p_0}
+\end{aligned}
+$$
+Reemplazando el valor obtenido para $x_1$ en la ecuación (6), se obtiene:
+
+\begin{equation}
+x_2 = \frac{p_0 (10000 \ p_0 \ (1 - p_0))}{1 - p_0} = 10000 \ p_0^2
+\end{equation}
+
+Al juntar las ecuaciones (5), (6) y (7), se puede concluir que el vector $\pi$ estable queda determinado por
+
+$$
+\pi = \begin{bmatrix} 
+              10000 \ (1 - p_0) \\
+              10000 \ p_0(1 - p_0) \\
+              10000 \ p_0^2
+          \end{bmatrix}^T
+$$
 
 \subsection{Literal c}
 
