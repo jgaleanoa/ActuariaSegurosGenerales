@@ -49,16 +49,16 @@ La distribución de severidad de los reclamos de determinado riesgo es Log-Norma
 
 Considere a $X:$ Tamaño del reclamo para determinado riesgo. Asuma además que $X \sim LogNormal(\mu, \sigma)$.
 
-Se sabe que para $X$, los parámetros se encuentran dados por las siguientes expresiones:
+Luego de usar el método de los momentos, se puede probar que los parámetros para $X$ se encuentran dados por las siguientes expresiones (proceso completamente análogo al realizado en el trabajo 1):
 
 \begin{equation*}
-\sigma = \sqrt{ln\left(\frac{Var[X]}{E[X]^2}+1\right)}
+\hat{\sigma} = \sqrt{ln\left(\frac{Var[X]}{E[X]^2}+1\right)}
        = \sqrt{ln\left(\frac{1560^2}{980^2}+1\right)}
        \approx 1.1236
 \end{equation*}
 
 \begin{equation*}
-\mu = ln(E[X])-\frac{\sigma^2}{2} = ln(980)-\frac{1.1236^2}{2} \approx 6.2563
+\hat{\mu} = ln(E[X])-\frac{\sigma^2}{2} = ln(980)-\frac{1.1236^2}{2} \approx 6.2563
 \end{equation*}
 
 Por otro lado, se considera $C:$ Número de reclamos. Así pues $E[C]= \lambda \cdot 1500 = 0.05 \cdot 1500 = 75$, es decir, de las 1500 pólizas vigentes, el valor esperado del número de reclamos es 75.
@@ -113,6 +113,17 @@ asegurado descienda a la categoría sin descuento 0\%.
 Determine la matriz de transición $P$ que determina la evolución en el tiempo de las proporciones de asegurados en varias categorías.
 
 **Solución**
+
+Los tres tipos de grupos de descuento se resumen en la siguiente tabla:
+
+```{r}
+cat <- 0:2
+desc <- c("0%", "30%", "50%")
+tabla <- data.frame(Categoria = cat, Descuento = desc)
+kable(tabla, longtable = T, align = "c",
+      col.names = c("Categoría", "Grupo de descuento"),
+      caption = "Categorías según grupo de descuento")
+```
 
 Se denota por $p_0$ a la probabilidad de no realizar reclamos, luego la matriz de transición se escribe como:
 
@@ -169,6 +180,15 @@ x_1 = p_0 \cdot x_0
 x_2 = p_0 \ (x_1 + x_2)
 \end{equation}
 
+\subsection{Literal c}
+
+Resuelva las ecuaciones del item anterior, utilice una rutina de computador y obtenga los números de asegurados en varias categorías cuando la frecuencia de reclamos es:
+
+* $\lambda_1 = 0.1$
+* $\lambda_2 = 0.2$
+
+**Solución**
+
 Dado el supuesto inicial de la ecuación (1), (2) termina determinada como:
 
 \begin{equation}
@@ -191,6 +211,7 @@ x_2(1 - p_0) &= p_0 x_1 \\
 x_2 &= \frac{p_0 x_1}{1 - p_0}
 \end{aligned}
 $$
+
 Reemplazando el valor obtenido para $x_1$ en la ecuación (6), se obtiene:
 
 \begin{equation}
@@ -206,15 +227,6 @@ $$
               10000 \ p_0^2
           \end{bmatrix}^T
 $$
-
-\subsection{Literal c}
-
-Resuelva las ecuaciones del item anterior, utilice una rutina de computador y obtenga los números de asegurados en varias categorías cuando la frecuencia de reclamos es:
-
-* $\lambda_1 = 0.1$
-* $\lambda_2 = 0.2$
-
-**Solución**
 
 Suponga que el número de reclamos posee una distribución Poisson especificada de la siguiente manera:
 
@@ -244,6 +256,7 @@ Del mismo modo se puede proceder para $\lambda_2 = 0.2$. Y con esto, lo obtenido
 
 
 \begin{table}[H]
+\caption{Número de asegurados por categoría}
 \centering
 \begin{tabular}{|c|ccc|ccc|}
 \hline
@@ -251,7 +264,6 @@ Del mismo modo se puede proceder para $\lambda_2 = 0.2$. Y con esto, lo obtenido
 Categoría  & \multicolumn{1}{c|}{0}   & \multicolumn{1}{c|}{1}   & 2    & \multicolumn{1}{c|}{0}    & \multicolumn{1}{c|}{1}    & 2    \\ \hline
 Asegurados & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861} & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
 \end{tabular}
-\caption{Número de asegurados por categoría}
 \end{table}
 
 \subsection{Literal d}
@@ -269,19 +281,18 @@ $$
 donde $\textbf{v}^{(t)} = \left[v_0^{(t)} \ v_1^{(t)} \ v_2^{(t)}\right]$ es la distribución marginal del número de asegurados en cada una de las categorías al instante $t$.
 
 \begin{table}[H]
-\centering
-\begin{tabular}{|l|lll|lll|}
-\hline
-       & \multicolumn{3}{l|}{$\lambda_1 = 0.1$}                                    & \multicolumn{3}{l|}{$\lambda_2 = 0.2$}                                     \\ \hline
-Tiempo & \multicolumn{1}{l|}{0}   & \multicolumn{1}{l|}{1}    & 2    & \multicolumn{1}{l|}{0}    & \multicolumn{1}{l|}{1}    & 2    \\ \hline
-1      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{9048} & 0    & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{8187} & 0    \\ \hline
-2      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
-3      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
-4      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
-5      & \multicolumn{1}{l|}{952} & \multicolumn{1}{l|}{861}  & 8187 & \multicolumn{1}{l|}{1813} & \multicolumn{1}{l|}{1484} & 6703 \\ \hline
-\end{tabular}
 \caption{Asegurados por categoría en el tiempo $t$}
-\label{}
+\centering
+\begin{tabular}{|c|ccc|ccc|}
+\hline
+       & \multicolumn{3}{c|}{$\lambda_1 = 0.1$}                                    & \multicolumn{3}{c|}{$\lambda_2 = 0.2$}                                     \\ \hline
+Tiempo & \multicolumn{1}{c|}{0}   & \multicolumn{1}{c|}{1}    & 2    & \multicolumn{1}{c|}{0}    & \multicolumn{1}{c|}{1}    & 2    \\ \hline
+1      & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{9048} & 0    & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{8187} & 0    \\ \hline
+2      & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861}  & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
+3      & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861}  & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
+4      & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861}  & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
+5      & \multicolumn{1}{c|}{952} & \multicolumn{1}{c|}{861}  & 8187 & \multicolumn{1}{c|}{1813} & \multicolumn{1}{c|}{1484} & 6703 \\ \hline
+\end{tabular}
 \end{table}
 
 \subsection{Literal e}
