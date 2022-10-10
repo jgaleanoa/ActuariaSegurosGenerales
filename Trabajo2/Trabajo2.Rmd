@@ -63,7 +63,7 @@ Luego de usar el método de los momentos, se puede probar que los parámetros pa
 
 Por otro lado, se considera $C:$ Número de reclamos. Así pues $E[C]= \lambda \cdot 1500 = 0.05 \cdot 1500 = 75$, es decir, de las 1500 pólizas vigentes, el valor esperado del número de reclamos es 75.
 
-Adicionalmente, de dichos 75 reclamos esperados, no todos van a ser superiores o iguales a \$2000, por lo ue es necesario hacer uso de la distribución especificada para el tamaño de los reclamos y así determinar cuál será la proporción $p$ de reclamos que incurrirán en el reaseguro.
+Adicionalmente, de dichos 75 reclamos esperados, no todos van a ser superiores o iguales a \$2000, por lo que es necesario hacer uso de la distribución especificada para el tamaño de los reclamos y así determinar cuál será la proporción $p$ de reclamos que incurrirán en el reaseguro.
 
 \begin{equation*}
 p = P(X \geq 2000) \approx 0.1157
@@ -227,11 +227,10 @@ $$
               10000 \ p_0^2
           \end{bmatrix}^T
 $$
-
-Suponga que el número de reclamos posee una distribución Poisson especificada de la siguiente manera:
+Si se define la variable aleatoria $Y:$ Número de reclamos realizados por el asegurado, y además se supone que $Y \sim$ Poisson($\lambda$), entonces:
 
 $$
-p_0 = e^{-\lambda}
+p_0 = P(Y = 0) = \frac{\lambda^{0}e^{-\lambda}}{0!} = e^{-\lambda} 
 $$
 Así, reemplazando sucesivamente en lo obtenido arriba, se tienen las siguientes cantidades:
 
@@ -275,7 +274,7 @@ Asumiendo que inicialmente los 10000 asegurados se encuentran en la categoría s
 El número esperado de asegurados en para un instante de tiempo $t$ viene dado por:
 
 $$
-\textbf{v}^{(0)}P = \textbf{v}^{(t)}
+\textbf{v}^{(0)}P^t = \textbf{v}^{(t)}
 $$
 
 donde $\textbf{v}^{(t)} = \left[v_0^{(t)} \ v_1^{(t)} \ v_2^{(t)}\right]$ es la distribución marginal del número de asegurados en cada una de las categorías al instante $t$.
@@ -298,7 +297,50 @@ Tiempo & \multicolumn{1}{c|}{0}   & \multicolumn{1}{c|}{1}    & 2    & \multicol
 \subsection{Literal e}
 
 Si la prima neta del seguro es de 300\$ calcule el ingreso por primas en
-cada uno de los años del punto anterior.
+cada uno de los años del punto anterior. 
+
+**Solución**
+
+Al observar el cuadro 3, se puede notar que el número de asegurados por categoría es idéntico en todos los tiempos considerados diferentes de 1, por lo tanto se consideran 2 casos, asegurados para en el primer año y asegurados después del primer año.
+
+Para realizar el cálculo de ingreso por primas en los años considerados, se multiplica el número de asegurados por categoría por los respectivos complementos de los descuentos y el valor de la prima neta del seguro, es decir, 300 \$ para obtener el dinero total que pagaran los asegurados por categoría, luego se suma el total por categoría para obtener el ingreso anual de la compañía.
+
+\begin{table}[H]
+\caption{Ingreso por primas para el primer año}
+\centering
+\begin{tabular}{|c|cc|cc|}
+\hline
+\multicolumn{1}{|c|}{}          & \multicolumn{2}{c|}{$\lambda_1 = 0.1$}                     & \multicolumn{2}{c|}{$\lambda_2 = 0.2$}                     \\ \hline
+\multicolumn{1}{|c|}{Descuento} & \multicolumn{1}{c|}{Año 1} & \multicolumn{1}{c|}{Costo}  & \multicolumn{1}{c|}{Año 1} & \multicolumn{1}{c|}{Costo}  \\ \hline
+\multicolumn{1}{|c|}{$0\%$}     & \multicolumn{1}{c|}{952}   & \multicolumn{1}{c|}{285600} & \multicolumn{1}{c|}{1813}  & \multicolumn{1}{c|}{543900} \\ \hline
+$30\%$                          & \multicolumn{1}{c|}{9048}  & 1900080                     & \multicolumn{1}{c|}{8187}  & 1719270                     \\ \hline
+$50\%$                          & \multicolumn{1}{c|}{0}     & 0                           & \multicolumn{1}{c|}{0}     & 0                           \\ \hline
+Total                           & \multicolumn{1}{c|}{10000} & 2185680                     & \multicolumn{1}{c|}{10000} & 2263170                     \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\caption{Ingreso por primas después del primer año}
+\centering
+\begin{tabular}{|c|cc|cc|}
+\hline
+\multicolumn{1}{|c|}{}          & \multicolumn{2}{c|}{$\lambda_1 = 0.1$}                      & \multicolumn{2}{c|}{$\lambda_2 = 0.2$}                      \\ \hline
+\multicolumn{1}{|c|}{Descuento} & \multicolumn{1}{c|}{Año 2+} & \multicolumn{1}{c|}{Costo}  & \multicolumn{1}{c|}{Año 2+} & \multicolumn{1}{c|}{Costo}  \\ \hline
+\multicolumn{1}{|c|}{$0\%$}     & \multicolumn{1}{c|}{952}    & \multicolumn{1}{c|}{285600} & \multicolumn{1}{c|}{1813}   & \multicolumn{1}{c|}{543900} \\ \hline
+$30\%$                          & \multicolumn{1}{c|}{861}    & 180810                      & \multicolumn{1}{c|}{1484}   & 311640                      \\ \hline
+$50\%$                          & \multicolumn{1}{c|}{8187}   & 1228050                     & \multicolumn{1}{c|}{6703}   & 1005450                     \\ \hline
+Total                           & \multicolumn{1}{c|}{10000}  & 1694460                     & \multicolumn{1}{c|}{10000}  & 1860990                     \\ \hline
+\end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
 
 
 
