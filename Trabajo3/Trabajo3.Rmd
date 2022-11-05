@@ -1,0 +1,352 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document: 
+    number_sections: yes
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
+options(knitr.kable.NA = '')
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(pander)
+```
+
+```{=tex}
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
+
+\section{Punto 1}
+
+En este punto se implementará un modelo para cargar una prima de un
+seguro de forma diferenciada en relación al nivel de riesgo de los asegurados.
+
+\subsection{Literal a}
+
+Descargue la librería `CASdatasets` de `R`. En esta librería se encuentra un
+conjunto de datos `sgautonb`. Descargue el manual de uso de la librería
+`CASdatasets` donde usted puede encontrar una descripción de esta base de
+datos que recoge información sobre reclamos por accidentes de automóviles
+en Singapur. Acá la idea es ajustar modelos de regresión Poisson con por
+lo menos 2 predictores. Revise ejemplo 16 en las notas y utilice el documento
+sobre regresión de Poisson **SGvaluationPrinciplesPDF1.pdf**
+como material de apoyo.
+
+Esta pregunta es abierta y el objetivo consiste en implementar un modelo
+para cargar una prima de un seguro de forma diferenciada en relación al
+nivel de riesgo de los asegurados. Comente al final que grupos usted logra
+identificar que poseen un nivel de riesgo “diferente” y cual es la tasa de
+reclamos en cada uno de ellos, incluya los gráficos que usted considere
+pertinentes.
+
+**Solución**
+
+Para el proceso de modelación llevado a cabo en este literal, se tiene en cuenta el set de datos "sgautonb" de la librería "CASdatasets". Este conjunto de datos en particular registra los incidentes automovilísticos ocurridos en el año 1993 en Singapur y los mismos son proporcionados por la Asociación General de seguros en Singapur. La base de datos en cuestión posee 7483 registros en 14 variables donde se desea modelar inicialmente el predictor "Clm_Count" que da cuenta del número de siniestros en el periodo de un año.
+
+La cédula escogida para el ejercicio es 1037670969, a continuación se presenta la submuestra de los datos propuestos según el número de cédula escogido:
+
+```{r, echo = T}
+# Es necesario definir los factores antes de crear el subconjunto
+datos <- read.csv("sgautonb.csv") %>% 
+  mutate(AgeCat = factor(AgeCat),
+         VAgeCat = factor(VAgeCat),
+         NCD = factor(NCD),
+         SexInsured = factor(SexInsured),
+         VehicleType = factor(VehicleType),
+         VAgecat1 = factor(VAgecat1))
+
+# Cedula escogida
+CC <- 1037670969
+set.seed(CC)
+datos_muestra <- datos[sample(1:dim(datos)[1], 150), ]
+```
+
+Luego de realizar la lectura de los datos, se presenta un diccionario de las variables de la base de datos:
+
+```{r}
+diccionario <- read.table("dictionariopa.txt", header = T,
+                          sep = ":", encoding = "UTF8")
+kable(diccionario, booktabs = T, linesep = "", align = "c") %>% 
+  kable_styling(latex_options = c("HOLD_position"))
+```
+
+Finalmente, se presenta la estructura de la base de datos considerada:
+
+```{r}
+kable(head(datos_muestra[1:8]),
+      row.names = F, align = "c", booktabs = T, linesep = "") %>% 
+  kable_styling(latex_options = c("HOLD_position"))
+```
+
+Observando con detenimiento la base de datos, se puede apreciar que la información que proporcionan las variables "Female",  "LNWEIGHT", "AutoAge", "AutoAge0", "AutoAge1" y "AutoAge2" realmente está contenida en otras variables presentes en la base datos. Por lo tanto, para los modelos planteados de este punto en adelante se considerarán únicamente los 8 predictores restantes.
+
+Así entonces, se plantea un primer modelo poisson para explicar la variable "Clm_Count" con los regresores mencionados y sus respectivas adecuaciones pertinentes. La metodología usada para escoger las covariables fue la de selección hacia atrás, comenzando con el modelo completo (usando todas las covariables según lo descrito arriba) y se fueron eliminando aquellas que menos ayudaran a explicar la variable respuesta. Los coeficientes del modelo con sus respectivos estadísticos se muestran como sigue:
+
+```{r warning = F}
+mod_full <- glm(Clm_Count ~ SexInsured + VehicleType +
+                  AgeCat + offset(LNWEIGHT), 
+                family = poisson(link = "log"), 
+                data = datos_muestra)
+
+tabla_mod_full <- summary(mod_full)$coefficients
+aux <- rep(NA, 4)
+
+tabla_mod_full_Def <- rbind(tabla_mod_full[1:8, ], aux,
+                            tabla_mod_full[9:12, ], aux)
+row.names(tabla_mod_full_Def)[c(9, 14)] <- c("VehicleTypeZ", "AgeCat6")
+
+kable(tabla_mod_full_Def, booktabs = T, align = "c", linesep = "") %>% 
+  kable_styling(latex_options = c("HOLD_position"))
+```
+
+Para lo obtenido con este modelo, se logra apreciar que existen variables que producen singularidades numéricas en las estimaciones de ciertos niveles de las mismas. Además de eso, es notable que los valores p asociados a cada una de las variables, exceptuando el nivel 3 de "AgeCat", permiten concluir que, sin perdida de generalidad, las variables no son muy útiles al menos desde el punto de vista teórico.
+
+Teniendo en cuenta que la covariable "AgeCat" fue la única que mostró cierto nivel de significancia estadística se decide, en lo posible, mantenerla en modelos posteriores.
+
+Debido a los evidentes problemas en el ajuste usando selección hacia atrás, se decide cambiar de estrategia, esta vez, selección hacia adelante y se toma como referencia la variable que en el modelo anterior mostro algo de significancia, es decir, AgeCat. La variable NCD especifica a cual categoría de descuento pertenece el asegurado, sin embargo al considerarla en el modelo, esta presenta problema de convergencia por lo que se decide definir la variable "NCD_Discount" como una indicadora de si el asegurado pertenece a una categoría con descuento (1) o no (0). Luego de ir agregando covariables de forma secuencial se obtuvo el siguiente modelo:
+
+```{r}
+datos_muestra <- datos_muestra %>% 
+  mutate(NCD_Discount = if_else(NCD == 0, 0, 1))
+
+szs <- glm(Clm_Count ~ AgeCat + Female + NCD_Discount + offset(LNWEIGHT), 
+                family = poisson(link = "log"), 
+                data = datos_muestra)
+res_szs <- summary(szs)
+kable(res_szs$coefficients, booktabs = T, linesep = "", align = "c") %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+La única covariable que muestra significancia estadística es "AgeCat" debido a que existe al menos un nivel cuyo valor - p es menor a 0.1, sin embargo, se dejan las covariables "Female" y "NCD_Discount" puesto que su valor - p no es extremadamente alto y, además, la significancia estadística no necesariamente es significancia práctica.
+
+A continuación se presentan las tasas de reclamos para todas las posibles combinaciones de variables, esto es posible porque las variables con las que se ajusto el modelo son de naturaleza categórica:
+
+```{r}
+malla <- expand.grid(c(0, 2:6), 0:1, 0:1)
+colnames(malla) <- c("AgeCat", "Female", "NCD_Discount")
+malla <- malla %>% 
+  mutate(LNWEIGHT = 1,
+         AgeCat = factor(AgeCat, levels = c(0, 2:7))) 
+
+tasas_reclamos <- predict(szs, newdata = malla, type = "response") %>% 
+  round(2)
+
+malla$Tasa_reclamos <- tasas_reclamos
+
+kable(malla, booktabs = T, align = "c", linesep = "") %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+De esta última tabla se aprecian diversas tasas de reclamos por siniestro, siendo la combinación de la segunda fila de la tabla (AgeCat: 2, Female: 0, NCD_Discount: 0) la más preocupante puesto que presenta la tasa de siniestralidad más alta de todas y, además, es considerablemente mayor al resto.
+
+\newpage
+\subsection{Literal b}
+
+Responda a la pregunta: ¿conviene cobrar una misma prima para todo el
+portafolio?, si o no y por que?.
+
+Acá cédula corresponde al número de cédula (informar el elegido) de cualquiera de los integrantes del equipo. De esta manera cada equipo trabajará con diferentes datos.
+
+**Solución**
+
+Para este caso en particular  no conviene cobrar una misma prima que gobierne todo el portafolio, puesto que, como se puede notar en la tabla expuesta arriba, existen perfiles de riesgo diferenciados de acuerdo a las covariables medidas y presentes en el modelo. Específicamente hablando, se nota que los asegurados con una categoría de edad 2 tienen una taza de reclamos notablemente mayor al resto del portafolio. Dentro de dicha categoría de edad, los asegurados sin descuento tienden a tener una siniestralidad mucho mayor con una tasa de reclamos de casi 45. Esto es un claro indicador de que para este perfil por ejemplo, la prima debería ser significativamente mayor que para el resto del portafolio.
+
+\newpage
+\section{Punto 2}
+
+Los siguientes datos detallan los pagos en relación a reclamos registrados
+por una compañía de seguros generales durante el periodo 1993-98
+
+Tomado de “Introductory Statistics with applications in General Insurance” por I.B.Hossack, J.H.Polard, B.Zehnwirth.1999.
+
+Asumiendo que no se dispone de mas información, utilice el método de la esca-
+lera para estimar las provisiones relativas a reclamos pendientes hacia el final del año 1998, en relación a cada uno de los años de origen. \newline
+**Indicación:** 
+* El triángulo con que usted finalmente realizará el ejercicio será uno en el que usted realice una permutación de los valores que están en la columna señalada en el triangulo de arriba, de nuevo con una combinación de las funciones `set.seed(cedula)` y `sample(c(153,195,230,275),4,replace=FALSE)` donde nuevamente cédula es el número de cédula de uno de los integrantes del equipo (informar el número) y de esta manera cada equipo trabajará un triangulo diferente.
+* Adjunto esta el archivo `TRIANGULOS de PAGOS.html` que contiene código
+de `R` que puede ser de utilidad con el triangulo.
+
+**Solución**
+
+Para dar inicio al desarrollo de este punto, se realiza el procedimiento requerido para obtener el triángulo asignado como se muestra en las siguientes líneas:
+
+```{r echo = T}
+set.seed(1007221901) #cc Sebastian Gaviria
+col <- sample(c(153,195,230,275),4,replace=FALSE)
+triang <- data.frame(Ano = 1993:1998,
+                     IBNR = c(6023,6372,6505,6512,7523,8250),
+                     "0" = c(192,205,230,288,398,530),
+                     "1" = c(251,280,345,410,564,NA),
+                     "2" = c(col,NA,NA),
+                     "3" = c(145,150,212,NA,NA,NA),
+                     "4" = c(98,102,NA,NA,NA,NA),
+                     "5" = c(0,NA,NA,NA,NA,NA))
+```
+
+Una vez esto, el triangulo a trabajar queda completamente determinado como se muestra en la siguiente tabla:
+
+```{r}
+kable(triang, caption ="Triangulo obtenido", align = 'c', booktabs = T, linesep = "",
+      col.names = c("Año", "IBNR", "0", "1", "2", "3", "4", "5")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Con esto último, acumulando por las filas correspondientes a cada año, se obtiene el triángulo acumulado ilustrado acontinuación:
+
+```{r}
+triangulo_acumulado <- as.data.frame(t(apply(triang[,-c(1,2)],1,cumsum)))
+triangulo_acumulado2 <- cbind(triang[1:2],triangulo_acumulado)
+kable(triangulo_acumulado2, caption ="Triangulo acumulado", align = 'c', 
+      booktabs = T, linesep = "",
+      col.names = c("Año", "IBNR", "0", "1", "2", "3", "4", "5")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Con esto último, siguiendo el método de la escalera se pueden obtener los pagos acumulados respecto al año de origen como se muestran en la siguiente tabla;
+
+```{r}
+m.1_0 <- sum(triangulo_acumulado[,2],na.rm = T)/sum(triangulo_acumulado[-c(6),1])
+m.2_1 <- sum(triangulo_acumulado[,3],na.rm = T)/sum(triangulo_acumulado[-c(5:6),2])
+m.3_2 <- sum(triangulo_acumulado[,4],na.rm = T)/sum(triangulo_acumulado[-c(4:6),3])
+m.4_3 <- sum(triangulo_acumulado[,5],na.rm = T)/sum(triangulo_acumulado[-c(3:6),4])
+m.5_4 <- sum(triangulo_acumulado[,6],na.rm = T)/sum(triangulo_acumulado[-c(2:6),5])
+x <- c(m.1_0,m.2_1,m.3_2,m.4_3,m.5_4)
+xx <- c(triangulo_acumulado[6,1],triangulo_acumulado[5,2],
+        triangulo_acumulado[4,3],triangulo_acumulado[3,4],
+        triangulo_acumulado[2,5])
+
+pago_cum <- data.frame("1998"=xx[1],"1997"=xx[2],"1996"=xx[3],"1995"=xx[4],"1994"=xx[5])
+
+kable(pago_cum, caption ="Pagos acumulados respecto al año de origen", 
+      align = 'c', booktabs = T, linesep = "",
+      col.names = c("1998","1997","1996","1995","1994")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Teniendo en cuenta este resultado y haciendo uso del método de la escalera, se puede obtener el triángulo acumulado de predicción. El mismo se presenta así:
+
+```{r}
+y_1994 <- xx[5]*c(prod(x[c(5)]))
+y_1995 <- xx[4]*c(prod(x[c(4)]),prod(x[c(4,5)]))
+y_1996 <- xx[3]*c(prod(x[c(3)]),prod(x[c(3,4)]),prod(x[c(3:5)]))
+y_1997 <- xx[2]*c(prod(x[c(2)]),prod(x[c(2:3)]),prod(x[c(2:4)]),
+                  prod(x[c(2:5)]))
+y_1998 <- xx[1]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                  prod(x[c(1:4)]),prod(x[c(1:5)]))
+triangulo_acumulado_pred <- triangulo_acumulado
+triangulo_acumulado_pred[2,6] <- y_1994
+triangulo_acumulado_pred[3,c(5:6)] <- y_1995
+triangulo_acumulado_pred[4,c(4:6)] <- y_1996
+triangulo_acumulado_pred[5,c(3:6)] <- y_1997
+triangulo_acumulado_pred[6,c(2:6)] <- y_1998
+
+kable(triangulo_acumulado_pred, caption ="Triangulo acumulado de predicción", 
+      align = 'c', booktabs = T, linesep = "", digits = 2,
+      col.names = c("0","1","2","3","4","5")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Finalmente, con esto, es posible construír el triángulo esperado:
+
+```{r}
+test_triangulo <- triangulo_acumulado_pred
+test_triangulo[,2:6] <- triangulo_acumulado_pred[,2:6]-triangulo_acumulado_pred[,1:5]
+y_1994 <- test_triangulo[2,6]
+y_1995 <- sum(test_triangulo[3,c(5:6)])
+y_1996 <- sum(test_triangulo[4,c(4:6)])
+y_1997 <- sum(test_triangulo[5,c(3:6)])
+y_1998 <- sum(test_triangulo[6,c(2:6)])
+
+kable(test_triangulo, caption ="Triangulo esperado", 
+      align = 'c', booktabs = T, linesep = "", digits = 2,
+      col.names = c("0","1","2","3","4","5")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+Por otro lado, es de interés conocer qué tanto difieren estos resultados de lo obtenido realmente en la práctica. Para esa causa se muestra el error relativo de las estimaciones realizadas anteriormente:
+
+```{r}
+y_1994_pred <- triang[2,3]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                             prod(x[c(1:4)]),prod(x[c(1:5)]))
+y_1995_pred <- triang[3,3]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                             prod(x[c(1:4)]),prod(x[c(1:5)]))
+y_1996_pred <- triang[4,3]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                             prod(x[c(1:4)]),prod(x[c(1:5)]))
+y_1997_pred <- triang[5,3]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                             prod(x[c(1:4)]),prod(x[c(1:5)]))
+y_1998_pred <- triang[6,3]*c(prod(x[c(1)]),prod(x[c(1:2)]),prod(x[c(1:3)]),
+                             prod(x[c(1:4)]),prod(x[c(1:5)]))
+triangulo_acumulado_modelo <- triangulo_acumulado
+triangulo_acumulado_modelo[2,2:6] <- y_1994_pred
+triangulo_acumulado_modelo[3,2:6] <- y_1995_pred
+triangulo_acumulado_modelo[4,2:6] <- y_1996_pred
+triangulo_acumulado_modelo[5,2:6] <- y_1997_pred
+triangulo_acumulado_modelo[6,2:6] <- y_1998_pred
+test_triangulo <- triangulo_acumulado_modelo
+test_triangulo[,2:6]<-triangulo_acumulado_modelo[,2:6]-triangulo_acumulado_modelo[,1:5]
+
+err_triang <- round(abs(test_triangulo-triang[,3:8])/triang[,3:8]*100,1)
+
+kable(cbind(triang[1:2],err_triang), caption ="Error relativo porcentual", 
+      align = 'c', booktabs = T, linesep = "",
+      col.names = c("Año","IBNR","0","1","2","3","4","5")) %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+De acá se nota que el método de la escalera en general un buen método de estimación dados los bajos porcentajes de error relativo presente en la mayoría de los años. Sin embargo, es alarmante obtener errores relativos del 16%, 22& y 76%. En este punto se debe tratar con cuidado dichas estimaciones. 
+
+Finalemente las provisiones para reclamos pendientes hacia finales del año 1998 deberán ser las aiguientes:
+
+```{r}
+Y <- round(c(0,y_1994,y_1995,y_1996,y_1997,y_1998),0)
+resultado <- data.frame("ano" = c(1993:1998,"Total"),"Proviciones final 1998" = c(Y,sum(Y)))
+kable(resultado, caption ="Tabla de provisiones", 
+      align = 'c', booktabs = T, linesep = "") %>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

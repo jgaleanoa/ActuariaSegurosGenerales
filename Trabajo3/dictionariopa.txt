@@ -1,0 +1,15 @@
+Nombre:Descripción
+SexInsured:Género del asegurado hombre (M), mujer (F) y no especifico (U).
+Female:1 si es mujer, 0 en caso contrario.
+VehicleType:Tipo de vehículo automovil(A), camión(T) y motocicleta(M).
+PC:1 si el vehículo es privado, 0 en caso contrario.
+Clm_Count:Número de siniestros en el año.
+Exp_weights:Peso de la exposición o fracción del año en que la póliza rige.
+_LNWEIGHT:Logaritmo del peso de la exposición.
+NCD:Descuento por no siniestralidad. 
+AgeCat:Edad del asegurado en años, agrupados en seis categorías.
+VAgeCat: La edad del vehículo en años, agrupada en siete categorías.
+AutoAge0:1 si es un vehículo privado y VAgeCat = 0, 0 en caso contrario.
+AutoAge1:1 si se trata de un vehículo privado y VAgeCat = 1, 0 eoc.
+AutoAge2:1 si se trata de un vehículo privado y VAgeCat = 2, 0 eoc.
+AutoAge:1 si vehículo privado y VAgeCat = 0, 1 o 2, 0 eoc.
