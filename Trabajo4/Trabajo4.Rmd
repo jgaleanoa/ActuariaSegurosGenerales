@@ -98,7 +98,7 @@ A continuación se muestra la estructura de los datos considerados
 kable(head(datos), booktabs = T, row.names = F, linesep = "") %>% 
   kable_styling(latex_options = "HOLD_position")
 
-datos[datos$Payment == 0, 3] <- 1
+# [datos$Payment == 0, 3] <- 1
 ```
 
 \subsection{Ajuste de una Log-Normal}
@@ -109,6 +109,9 @@ Para ajustar una distribución Log-Normal a la variable Payment (pérdida en el 
 logn_fit <- MASS::fitdistr(datos$Payment, "log-normal")
 mean_st <- logn_fit$estimate[1]
 sd_st <- logn_fit$estimate[2]
+
+# Momentos
+# sigma_m <- sqrt(log(var(datos$Payment)/mean(datos$Payment)^2 + 1))
 ```
 
 $$
@@ -136,7 +139,7 @@ ggplot(data = datos, aes(x = Payment)) +
 
 \subsection{¿Se alcanza un buen ajuste?}
 
-El ajuste considerado no es muy adecuado debido a que infla mucho la probabilidad de los valores pequeños lo cual claramente difiere con lo observado con los datos (note la gran distancia existente entre la densidad estimada y el histograma observado), por otro lado, su capacidad de seguir la tendencia en la cola de la distribución no es despreciable, sin embargo, teniendo en cuenta que dichos valores son demasiado atípicos dicha utilidad no termina siendo satisfactoria si el precio a pagar es tener poca precisión en el "rango normal" de los datos.
+El ajuste considerado no es muy adecuado debido a que infla mucho la probabilidad de los valores pequeños lo cual claramente difiere con lo observado de los datos (note la gran distancia existente entre la densidad estimada y el histograma observado), por otro lado, su capacidad de seguir la tendencia en la cola de la distribución no es despreciable, sin embargo, teniendo en cuenta que dichos valores son demasiado atípicos, dicha utilidad no termina siendo satisfactoria si el precio a pagar es tener poca precisión en el "rango normal" de los datos.
 
 \section{Punto 2}
 
@@ -144,9 +147,58 @@ El ajuste considerado no es muy adecuado debido a que infla mucho la probabilida
 
 Para la distribución Log-normal estimada y con $\alpha = 0.05$ calcule las medidas $VaR(\alpha)$ y $ES(\alpha).$
 
+**Solución**
+
+Antes de calcular las medidas pedidas se recuerda la definición de las mismas
+
+$$
+\begin{aligned}
+VaR(\alpha) &= P(X > k) = \alpha \\
+ES(\alpha) &= \mathbb{E}[X|X > VaR_\alpha]
+\end{aligned}
+$$
+
+Para los cálculos se usará un nivel de significancia de $\alpha =0.05$ y la distribución Log-Normal ajustada en el punto 1.
+
+\subsubsection{$VaR(\alpha)$}
+
+Para calcular $VaR(\alpha)$ se sigue la definición de la misma
+
+```{r}
+VaR <- qlnorm(0.05, meanlog = mean_st, sdlog = sd_st, lower.tail = F)
+```
+
+$$
+P(X > k) = 0.05
+$$
+
+El valor de $k$ que cumple dicha propiedad es `r round(VaR, 4)`, es decir $VaR(\alpha = 0.05) = `r round(VaR, 4)`$
+
+\subsubsection{$ES(\alpha) = \mathbb{E}[X|X > VaR_\alpha]$}
+
+Una vez calculado el valor $VaR(\alpha = 0.05)$ se procede a calcular $ES(\alpha)$ siguiendo la definición de esperanza condicional 
+
+$$
+\mathbb{E}[X|X > `r round(VaR, 4)`] = \frac{1}{\mathbb{P}(X > `r round(VaR, 4)`)}\int_{`r round(VaR, 4)`}^{\infty} x f(x) dx
+$$
+
+donde $f(x)$ es la función densidad de probabilidad de una variable aleatoria Log-Normal.
+
+```{r}
+espected <- function(x){
+  x * dlnorm(x, meanlog = mean_st, sdlog = sd_st)
+}
+
+es <- integrate(espected, VaR, Inf)
+es_def <- es$value/plnorm(VaR, meanlog = mean_st, sdlog = sd_st, lower.tail = F)
+```
+
+
+Luego de hacer los respectivos cálculos numéricos, se puede probar que dicha integral converge a `r format(es_def, scientific = F)`
+
 \subsection{Literal b)}
 
-Si se tiene un portafolio de 20 pólizas, con una tasa de reclamos por póliza de 0 = 0.015 y un cargo de seguridad $\lambda = 0.05$ en la prima, las reservas necesarias al inicio de un periodo (año) UV para que la aseguradora pueda honrar los contratos con una confianza del 95 \% deben cumplir: De nuevo si $X$ corresponde a la perdida en el portafolio
+Si se tiene un portafolio de 20 pólizas, con una tasa de reclamos por póliza de $q = 0.015$ y un cargo de seguridad $\lambda = 0.05$ en la prima, las reservas necesarias al inicio de un periodo (año) UV para que la aseguradora pueda honrar los contratos con una confianza del 95 \% deben cumplir: De nuevo si $X$ corresponde a la perdida en el portafolio
 
 $$
 \begin{aligned}
@@ -156,6 +208,10 @@ $$
 $$
 
 **¿Cuánto serían las reservas en este caso?**
+
+**Solución**
+
+
 
 \subsection{Literal c)}
 
