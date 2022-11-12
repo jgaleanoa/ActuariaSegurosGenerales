@@ -103,16 +103,22 @@ kable(head(datos), booktabs = T, row.names = F, linesep = "") %>%
 
 \subsection{Ajuste de una Log-Normal}
 
-Para ajustar una distribución Log-Normal a la variable Payment (pérdida en el portafolio), se utiliza la función `fitDist` del paquete `MASS` el cual estima los parámetros de la distribución de probabilidad mediante el método de máxima verosimilitud obteniéndose los siguientes parámetros estimados
+Para ajustar una distribución Log-Normal a la variable Payment (pérdida en el portafolio), se usa le método de los momentos. Se puede probar que las ecuaciones cerradas para dichos parámetros estan determinadas por las siguientes expresiones:
+
+\begin{equation*}
+\hat{\sigma} = \sqrt{ln\left(\frac{Var[X]}{E[X]^2}+1\right)}
+\end{equation*}
+
+\begin{equation*}
+\hat{\mu} = ln(E[X])-\frac{\hat{\sigma}^2}{2}
+\end{equation*}
 
 ```{r}
-logn_fit <- MASS::fitdistr(datos$Payment, "log-normal")
-mean_st <- logn_fit$estimate[1]
-sd_st <- logn_fit$estimate[2]
-
-# Momentos
-# sigma_m <- sqrt(log(var(datos$Payment)/mean(datos$Payment)^2 + 1))
+sd_st <- sqrt(log(var(datos$Payment)/mean(datos$Payment)^2 + 1))
+mean_st <- log(mean(datos$Payment)) - sd_st^2/2
 ```
+
+con lo anterior se tienen las siguientes estimaciones
 
 $$
 \begin{cases}
@@ -194,11 +200,11 @@ es_def <- es$value/plnorm(VaR, meanlog = mean_st, sdlog = sd_st, lower.tail = F)
 ```
 
 
-Luego de hacer los respectivos cálculos numéricos, se puede probar que dicha integral converge a `r format(es_def, scientific = F)`
+Luego de hacer los respectivos cálculos numéricos, se puede probar que dicho valor esperado converge a `r format(es_def, scientific = F)`
 
 \subsection{Literal b)}
 
-Si se tiene un portafolio de 20 pólizas, con una tasa de reclamos por póliza de $q = 0.015$ y un cargo de seguridad $\lambda = 0.05$ en la prima, las reservas necesarias al inicio de un periodo (año) UV para que la aseguradora pueda honrar los contratos con una confianza del 95 \% deben cumplir: De nuevo si $X$ corresponde a la perdida en el portafolio
+Si se tiene un portafolio de 20 pólizas, con una tasa de reclamos por póliza de $q = 0.015$ y un cargo de seguridad $\lambda = 0.05$ en la prima, las reservas necesarias al inicio de un periodo (año) $U_V$ para que la aseguradora pueda honrar los contratos con una confianza del 95 \% deben cumplir: De nuevo si $X$ corresponde a la perdida en el portafolio
 
 $$
 \begin{aligned}
@@ -211,7 +217,31 @@ $$
 
 **Solución**
 
+Teniendo en cuenta la siguiente expresión y que $\sigma^2$ se encuentra dado en las unidades respectivas de la variable Payment entonces
 
+$$
+\sigma^2 + m^2 = E[X_i^2]
+$$
+
+$m$ se puede estimar como 
+
+$$
+\hat{m} = \sqrt{E[X_i^2] - \hat{\sigma}^2}
+$$
+dicho esto, usando los datos y la estimaciones obtenidas en literales anteriores se llega a que $\hat{m} = `r sqrt(exp(mean_st + sd_st^2/2)^2 - sqrt(exp(2*mean_st + sd_st^2)*(exp(sd_st^2) - 1))) %>% round(4)`$.
+
+Así entonces, reescribiendo la expresión dada para las reservas, se llega a que:
+
+$$
+U_V = VaR(\alpha) - (1 + \lambda)nm
+$$
+
+Donde $m$ es 1009.4979, $n = Kq = `r 20*0.015`$ con $K = 20$ y $q = 0.015$ y por lo tanto 
+
+$$
+U_V = `r round(VaR, 4)` - (1 + 0.05) \cdot 0.3 \cdot 1009.4979 =`r (VaR - (1 + 0.05)*0.3*1009.4979) %>% round(4)`
+$$
+Con esto, las reservas necesarias al inicio del próximo año deben ser 3463.2304
 
 \subsection{Literal c)}
 
@@ -223,6 +253,21 @@ $$
 
 **¿Cuánto serían las reservas en este caso?**
 
+**Solución**
+
+Teniendo en cuenta los parámetros mencionados en el literal anterior, así como ES(alpha) conseguido arriba, las reservas U_E para el inicio del siguiente periodo serán
+
+$$
+U_E = ES(\alpha = 0.05)  - (1 + \lambda)nm
+$$
+Reemplazando por los valores obtenidos
+
+$$
+U_E = `r round(es_def, 4)`  - (1 + 0.05) \cdot 0.3 \cdot 1009.4979 = `r round(es_def - (1.05)*0.3*1009.4979, 4)`
+$$
+
+Así entonces, las reservas necesarias para el comienzo del siguiente año, según el déficit esperado son $U_E = 7728.5609$
+
 \section{Punto 3}
 
 \subsection{Literal a)}
@@ -230,11 +275,39 @@ $$
 Ajuste de distribución de Pareto
 
 $$
-f(x) = \frac{\alpha}{\beta} \left(\frac{\beta}{x}\right)^{1 + \alpha}, x > \beta
+f(x) = \frac{\alpha \beta^\alpha}{x^{\alpha + 1}}, x > \beta
 $$
 
 a la cola derecha de la distribución de perdida (lognormal), simplemente
-exigiendo que ambas densidades coincidan en la media y el cuantil VaR $\mathbb{E}[X]$ y $VaR(\alpha = 0.05)$ de la lognormal. Informe los parámetros de la distribución Pareto y grafique las colas.
+exigiendo que ambas densidades coincidan en la media y el cuantil VaR. $\mathbb{E}[X]$ y $VaR(\alpha = 0.05)$ de la lognormal. Informe los parámetros de la distribución Pareto y grafique las colas.
+
+$$
+\begin{aligned}
+\frac{\alpha \beta}{\alpha - 1} &= `r mean_st` \\
+\mathbb{P}(Y > `r round(VaR, 4)`) &= szs 
+\end{aligned}
+$$
+
+```{r}
+library(EnvStats)
+funcion_mela <- function(malla){
+  alpha <- malla[, 1]
+  beta <- malla[, 2]
+  
+  media <- (alpha*beta)/(alpha - 1)
+  cuantil <- qpareto(p = 0.05, location = beta, shape = alpha)
+  
+  err <- data.frame(alpha = alpha,
+                    beta = beta,
+                    Error_media = abs(media - mean_st), 
+                    Error_cuantil = abs(cuantil - VaR))
+  return(err)
+}
+
+mallita <- expand.grid(alpha = seq(0, 50, 0.01),
+                       beta = seq(0, 50, 0.01))
+```
+
 
 \subsection{Literal b)}
 
