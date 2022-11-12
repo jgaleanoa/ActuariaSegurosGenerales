@@ -1,0 +1,201 @@
+---
+header-includes:
+- \usepackage{longtable}
+- \usepackage[utf8]{inputenc}
+- \usepackage[spanish]{babel}\decimalpoint
+- \setlength{\parindent}{1.25cm}
+- \usepackage{amsmath}
+- \usepackage{xcolor}
+- \usepackage{cancel}
+- \usepackage{array}
+- \usepackage{float}
+- \usepackage{multirow}
+output:
+  pdf_document: 
+    number_sections: yes
+fontsize: 12pt
+papersize: letter
+geometry: margin = 1in
+language: "es"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, fig.align = "center",
+                      fig.height = 3.2, fig.pos = "H")
+options(knitr.kable.NA = '')
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+library(pander)
+library(CASdatasets)
+```
+
+```{=tex}
+\input{titlepage}
+\thispagestyle{empty}
+\tableofcontents
+\newpage
+\thispagestyle{empty}
+\listoffigures
+\newpage
+```
+
+En este trabajo se realizará un ejercicio de análisis de riesgo.
+
+**Descripción.** Con base en datos reales de severidad, vamos a ajustar 2 distribuciones a saber: Lognormal y una distribución de Pareto. El interés se centrará en la cola derecha de la distribución de perdida de un portafolio de pólizas, a fin de relacionar 1. Las reservas, 2. el nivel de retención y 3. el cargo de seguridad. pero esta vez por medio de otra medida de riesgo diferente del VaR (Value at Risk, valor en riesgo) que no es más que un cuantil extremo de la cola derecha de la distribución de perdida.
+
+La medida de riesgo que vamos a explorar se denomina ES (Expected Shortfall,
+deficit esperado) y es más robusta que la medida VaR. Viene definida por
+
+$$
+ES(\alpha) = \mathbb{E}[X|X>VaR_\alpha]
+$$
+Acá la variable aleatoria $X$ corresponde a la perdida en el portafolio de pólizas y $VaR_\alpha$ es el cuantil de la distribución de $X$ de nivel $\alpha \in (0, 1)$, es decir
+
+$$
+\mathbb{P}(X>VaR_\alpha) = \alpha
+$$
+La idea es ilustrada en la siguiente figura 1
+
+Base de datos `fremotor1sev0304a` de la librería `CASdatasets` de `R`.
+
+Se trata de seguros de automotor para privados, constituye un registro de severidades con fechas de ocurrencia entre 2003 y 2004 en Francia.
+
+Seleccione una submuestra para realizar todo el ejercicio. Acá cédula corresponde al número de cédula (informar el elegido) de cualquiera de los integrantes del equipo. De esta manera cada equipo trabajará con diferentes datos.
+
+\begin{figure}
+\begin{center}
+  \includegraphics[height = 250px, width = 250px]{szsmelo.jpg}
+  \caption{Un ejemplo de una distribución de pérdidas con el VaR al 95 \%}
+\end{center}
+\end{figure}
+
+la pérdida media se muestra con una línea de puntos y una medida de riesgo alternativa conocida como el el déficit esperado está marcado con una línea discontinua.
+
+\section{Punto 1}
+
+* **Ajuste una distribución lognormal** a la submuestra seleccionada. Informe los parámetros.
+* Gráfique un histograma y superponga la distribución lognormal.
+* Considera usted que hay un buen ajuste? comente sobre esto.
+
+**Solución**
+
+La cédula seleccionada para escoger la submuestra es 1037670969, a continuación se presenta la obtención de la submuestra
+
+```{r, echo=T}
+data(fremotor1sev0304a)
+CC <- 1037670969
+set.seed(CC)
+datos <- fremotor1sev0304a[sample(1:9246, 150), ]
+```
+
+A continuación se muestra la estructura de los datos considerados
+
+```{r}
+kable(head(datos), booktabs = T, row.names = F, linesep = "") %>% 
+  kable_styling(latex_options = "HOLD_position")
+
+datos[datos$Payment == 0, 3] <- 1
+```
+
+\subsection{Ajuste de una Log-Normal}
+
+Para ajustar una distribución Log-Normal a la variable Payment (pérdida en el portafolio), se utiliza la función `fitDist` del paquete `MASS` el cual estima los parámetros de la distribución de probabilidad mediante el método de máxima verosimilitud obteniéndose los siguientes parámetros estimados
+
+```{r}
+logn_fit <- MASS::fitdistr(datos$Payment, "log-normal")
+mean_st <- logn_fit$estimate[1]
+sd_st <- logn_fit$estimate[2]
+```
+
+$$
+\begin{cases}
+\hat{\mu} = `r round(mean_st, 4)` \\
+\hat{\sigma} = `r round(sd_st, 4)`
+\end{cases}
+$$
+
+\subsection{Histograma y densidad estimada}
+
+Luego de ajustar una distribución Log-Normal a la variable de interés, se gráfica un histograma para la variable observada y la densidad de probabilidad con los parámetros estimados.
+
+```{r warning=F, message=F}
+datasim <- data.frame(Payment_sim = rlnorm(10000, mean_st, sd_st))
+ggplot(data = datos, aes(x = Payment)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan") +
+  geom_density(data = datasim, aes(x = Payment_sim)) +
+  xlim(0, max(datos$Payment)) +
+  labs(title = "Distribucion Log-Normal Ajustada", y = "") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+\subsection{¿Se alcanza un buen ajuste?}
+
+El ajuste considerado no es muy adecuado debido a que infla mucho la probabilidad de los valores pequeños lo cual claramente difiere con lo observado con los datos (note la gran distancia existente entre la densidad estimada y el histograma observado), por otro lado, su capacidad de seguir la tendencia en la cola de la distribución no es despreciable, sin embargo, teniendo en cuenta que dichos valores son demasiado atípicos dicha utilidad no termina siendo satisfactoria si el precio a pagar es tener poca precisión en el "rango normal" de los datos.
+
+\section{Punto 2}
+
+\subsection{Literal a)}
+
+Para la distribución Log-normal estimada y con $\alpha = 0.05$ calcule las medidas $VaR(\alpha)$ y $ES(\alpha).$
+
+\subsection{Literal b)}
+
+Si se tiene un portafolio de 20 pólizas, con una tasa de reclamos por póliza de 0 = 0.015 y un cargo de seguridad $\lambda = 0.05$ en la prima, las reservas necesarias al inicio de un periodo (año) UV para que la aseguradora pueda honrar los contratos con una confianza del 95 \% deben cumplir: De nuevo si $X$ corresponde a la perdida en el portafolio
+
+$$
+\begin{aligned}
+\mathbb{P}[X > VaR(\alpha = 0.05)] &= \alpha \\
+&\Rightarrow VaR(\alpha) = U_V + (1 + \lambda)nm
+\end{aligned}
+$$
+
+**¿Cuánto serían las reservas en este caso?**
+
+\subsection{Literal c)}
+
+La idea con el déficit esperado $ES(\alpha)$ es que permite calcular reservas más confiables de una forma sensible, en este caso calcularíamos las reservas $U_E$ necesarias al inicio del periodo con base en la medida $ES(\alpha)$ así
+
+$$
+ES(\alpha = 0.05) = U_E + (1 + \lambda)nm
+$$
+
+**¿Cuánto serían las reservas en este caso?**
+
+\section{Punto 3}
+
+\subsection{Literal a)}
+
+Ajuste de distribución de Pareto
+
+$$
+f(x) = \frac{\alpha}{\beta} \left(\frac{\beta}{x}\right)^{1 + \alpha}, x > \beta
+$$
+
+a la cola derecha de la distribución de perdida (lognormal), simplemente
+exigiendo que ambas densidades coincidan en la media y el cuantil VaR $\mathbb{E}[X]$ y $VaR(\alpha = 0.05)$ de la lognormal. Informe los parámetros de la distribución Pareto y grafique las colas.
+
+\subsection{Literal b)}
+
+Con base en la gráfique cual cree usted que serían la utilidad de la distribución de Pareto para una aseguradora o reaseguradora?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
