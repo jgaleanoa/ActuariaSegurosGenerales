@@ -268,6 +268,8 @@ $$
 
 Así entonces, las reservas necesarias para el comienzo del siguiente año, según el déficit esperado son $U_E = 7728.5609$
 
+\newpage
+
 \section{Punto 3}
 
 \subsection{Literal a)}
@@ -284,28 +286,20 @@ exigiendo que ambas densidades coincidan en la media y el cuantil VaR. $\mathbb{
 $$
 \begin{aligned}
 \frac{\alpha \beta}{\alpha - 1} &= `r mean_st` \\
-\mathbb{P}(Y > `r round(VaR, 4)`) &= szs 
+\mathbb{P}(Y > 3781.222) &= 0.05
 \end{aligned}
 $$
 
+donde $Y \sim Pareto()$
+
 ```{r}
 library(EnvStats)
-funcion_mela <- function(malla){
-  alpha <- malla[, 1]
-  beta <- malla[, 2]
-  
-  media <- (alpha*beta)/(alpha - 1)
-  cuantil <- qpareto(p = 0.05, location = beta, shape = alpha)
-  
-  err <- data.frame(alpha = alpha,
-                    beta = beta,
-                    Error_media = abs(media - mean_st), 
-                    Error_cuantil = abs(cuantil - VaR))
-  return(err)
-}
+datasim$Pareto <- c(rpareto(10000, location = 5.957219,
+                            shape = 107481557))
 
-mallita <- expand.grid(alpha = seq(0, 50, 0.01),
-                       beta = seq(0, 50, 0.01))
+ggplot(data = datasim) +
+  geom_density(aes(Payment_sim)) +
+  geom_density(aes(Pareto))
 ```
 
 
