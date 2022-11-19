@@ -10,6 +10,8 @@ header-includes:
 - \usepackage{array}
 - \usepackage{float}
 - \usepackage{multirow}
+- \usepackage{relsize}
+- \usepackage{exscale}
 output:
   pdf_document: 
     number_sections: yes
@@ -277,22 +279,64 @@ Así entonces, las reservas necesarias para el comienzo del siguiente año, seg�
 Ajuste de distribución de Pareto
 
 $$
-f(x) = \frac{\alpha \beta^\alpha}{x^{\alpha + 1}}, x > \beta
+f(x) = \frac{\gamma \beta^\gamma}{x^{\gamma + 1}}, \ x > \beta
 $$
 
 a la cola derecha de la distribución de perdida (lognormal), simplemente
 exigiendo que ambas densidades coincidan en la media y el cuantil VaR. $\mathbb{E}[X]$ y $VaR(\alpha = 0.05)$ de la lognormal. Informe los parámetros de la distribución Pareto y grafique las colas.
 
+**Solución**
+
+Se plantea el sistema de ecuaciones con las condiciones dadas:
+
+\begin{equation}
+E[X] = \frac{\gamma \beta}{\gamma - 1} = \exp\left(\mu + \frac{\sigma^2}{2}\right)
+\end{equation}
+
+\begin{equation}
+\mathbb{P}(\tilde{Z} < \tilde{Z}_{1 - \alpha}) = 1 - \alpha = \mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \frac{\gamma \beta^{\gamma}}{x^{\gamma + 1}} dx
+\end{equation}
+
+donde $\tilde{Z}$ tiene distribución Log- Normal, luego $log(\tilde{Z})$ se distribuye normal y $P_{1 - \alpha}$ es el cuántil inferior de una variable aleatoria con distribución Pareto. Dicho lo anterior, se buscan expresiones más manejables para la ecuación (2) de la siguiente manera:
+
 $$
 \begin{aligned}
-\frac{\alpha \beta}{\alpha - 1} &= `r mean_st` \\
-\mathbb{P}(Y > 3781.222) &= 0.05
+\mathbb{P}(\tilde{Z} < \tilde{Z}_{1 - \alpha}) &= 1 - \alpha \\
+\mathbb{P}\left[log(\tilde{Z}) < log(\tilde{Z}_{1 - \alpha})\right] &= 1 -\alpha \\
+\mathbb{P}\left[Z< \frac{log(\tilde{Z}_{1 - \alpha}) - \mu}{\sigma}\right] &= 1 -\alpha 
 \end{aligned}
 $$
 
-donde $Y \sim Pareto()$
+claramente el lado derecho de la desigualdad se puede igualar al cuántil $Z_{1 - \alpha}$ de una normal estándar, luego
 
-```{r}
+$$
+\frac{log(\tilde{Z}_{1 - \alpha}) - \mu}{\sigma} = Z_{1 - \alpha} \Leftrightarrow \tilde{Z}_{1 - \alpha} = \exp\left(\mu + Z_{1 - \alpha} \cdot \sigma \right)
+$$
+
+ahora se soluciona la integral del lado derecho de la ecuación (2)
+
+$$
+\begin{aligned}
+\mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \frac{\gamma \beta^{\gamma}}{x^{\gamma + 1}} dx  &= 1 -\alpha \\ \mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \gamma \beta^{\gamma} x^{-\gamma - 1} dx  &= 1 - \alpha \\ 
+\frac{\gamma \beta^{\gamma} x^{-\gamma}}{-\gamma} \Big|_{\beta}^{P_{1 - \alpha}} &= 1 -\alpha \\
+\beta^{\gamma}\left[-P_{1 - \alpha}^{\gamma} + \beta^{-\gamma}\right] = 1 - \alpha &\Rightarrow P_{1 - \alpha}^{-\gamma} = \beta^{-\gamma} - (1 - \alpha) \beta^{-\gamma} \\
+&\Rightarrow P_{1 - \alpha} = \beta[1 - (1 - \alpha)]^{-\frac{1}{\gamma}} \\
+&\Rightarrow P_{1 - \alpha} = \frac{\beta}{[1 - (1 - \alpha)]^{\frac{1}{\gamma}}} \\
+&\Rightarrow P_{1 - \alpha} = \frac{\beta}{\alpha^{\frac{1}{\gamma}}}
+\end{aligned}
+$$
+
+Finalmente, el sistema de ecuaciones queda determinado de la siguiente forma
+
+$$
+\begin{cases}
+\frac{\gamma \beta}{\gamma - 1} = \exp\left(\mu + \frac{\sigma^2}{2}\right) \hspace{.48in} (1) \\
+\frac{\beta}{\alpha^{\frac{1}{\gamma}}} = \exp\left(\mu + Z_{1 - \alpha} \cdot \sigma\right) \hspace{.2in} (2)
+\end{cases}
+$$
+el sistema de ecuaciones resultante es altamente no lineal y se usa una rutina de computadora para buscar los valores de $\gamma$ y $\beta$ de la distribución Pareto teniendo en cuenta que $\mu, \sigma$ y $\alpha$ están dados por las estimaciones realizadas previamente, sin embargo luego de intentar con varias rutinas y programas de computadora (R, Python y Mathematica) se llega a la conclusión de que el sistema no tiene solución en los reales con las condiciones dadas.
+
+```{r eval = F}
 library(EnvStats)
 datasim$Pareto <- c(rpareto(10000, location = 5.957219,
                             shape = 107481557))
