@@ -342,11 +342,10 @@ $$
 \frac{`r round(Gamma, 4)` \cdot `r round(Beta, 4)`^{`r round(Gamma, 4)`}}{`r round(VaR, 4)`^{`r round(Gamma, 4)` + 1}} &= 0.00001967161
 \end{aligned}
 $$
-los cuales satisfcacen el sistema de ecuaciones planteado.
+los cuales satisfacen el sistema de ecuaciones planteado.
 
 ```{r, warning=F, message=F, fig.cap="Log-Normal vs Pareto"}
 library(EnvStats)
-library(latex2exp)
 densityframe <- data.frame(Payment = c(rlnorm(10000, mean_st, sd_st),rpareto(10000, Beta, Gamma)),
                            Tipo = c(rep("Lognormal",10000),
                                     rep("Pareto",10000)))
@@ -359,9 +358,9 @@ ggplot(densityframe, aes(x=Payment, color=Tipo)) +
              linetype = "dashed") +
   xlim(500, 12000) + 
   geom_text(x = exp(mean_st + sd_st^2/2) + 450,
-             y = 8e-04, label="E[X]", color = "black") +
-  geom_text(x = VaR + 1400,
-             y = 8e-04, label = TeX("$VaR(\\alpha = 0.05)$"), color = "black") +
+             y = 8e-04, label = "E[X]", color = "black") +
+  geom_text(x = VaR + 450,
+             y = 8e-04, label = "VaR", color = "black") +
   theme_bw() + 
   theme(plot.title = element_text(hjust = 0.5))
 ```
