@@ -97,7 +97,8 @@ datos <- fremotor1sev0304a[sample(1:9246, 150), ]
 A continuación se muestra la estructura de los datos considerados
 
 ```{r}
-kable(head(datos), booktabs = T, row.names = F, linesep = "") %>% 
+kable(head(datos), booktabs = T, row.names = F, linesep = "",
+      caption = "Estructura de los datos") %>% 
   kable_styling(latex_options = "HOLD_position")
 
 # [datos$Payment == 0, 3] <- 1
@@ -133,7 +134,7 @@ $$
 
 Luego de ajustar una distribución Log-Normal a la variable de interés, se gráfica un histograma para la variable observada y la densidad de probabilidad con los parámetros estimados.
 
-```{r warning=F, message=F}
+```{r warning=F, message=F, fig.cap="Distribucion Log-Normal Ajustada"}
 datasim <- data.frame(Payment_sim = rlnorm(10000, mean_st, sd_st))
 ggplot(data = datos, aes(x = Payment)) + 
   geom_histogram(aes(y = ..density..),
@@ -287,74 +288,93 @@ exigiendo que ambas densidades coincidan en la media y el cuantil VaR. $\mathbb{
 
 **Solución**
 
-Se plantea el sistema de ecuaciones con las condiciones dadas:
+Para esta situación se desea que la curva pareto ajustada corte a la curva Log-Normal previamente estimada en dos puntos, el primero es la densidad de la Log-Normal evaluada en su esperanza y el segundo es la densidad evaluada en el cuantil $VaR(\alpha = 0.05)$, es decir, se quiere resolver el siguiente sistema de ecuaciones;
 
 \begin{equation}
-E[X] = \frac{\gamma \beta}{\gamma - 1} = \exp\left(\mu + \frac{\sigma^2}{2}\right)
+\frac{\gamma \beta^{\gamma}}{E[X]^{\gamma + 1}} = f(E[X])
 \end{equation}
 
 \begin{equation}
-\mathbb{P}(\tilde{Z} < \tilde{Z}_{1 - \alpha}) = 1 - \alpha = \mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \frac{\gamma \beta^{\gamma}}{x^{\gamma + 1}} dx
+\frac{\gamma \beta^{\gamma}}{VaR(\alpha = 0.05)^{\gamma + 1}} = f(VaR(\alpha = 0.05))
 \end{equation}
 
-donde $\tilde{Z}$ tiene distribución Log- Normal, luego $log(\tilde{Z})$ se distribuye normal y $P_{1 - \alpha}$ es el cuántil inferior de una variable aleatoria con distribución Pareto. Dicho lo anterior, se buscan expresiones más manejables para la ecuación (2) de la siguiente manera:
+donde $X \sim LogN(\hat{\mu} = `r round(mean_st, 4)`, \hat{\sigma} = `r round(sd_st, 4)`)$ es la Log-Normal obtenida en puntos anteriores y $f$ es su respectiva f.d.p. Luego de resolver este sistema mediante aproximación numérica se obtiene los siguiente valores para $\gamma$ y $\beta$
 
-$$
-\begin{aligned}
-\mathbb{P}(\tilde{Z} < \tilde{Z}_{1 - \alpha}) &= 1 - \alpha \\
-\mathbb{P}\left[log(\tilde{Z}) < log(\tilde{Z}_{1 - \alpha})\right] &= 1 -\alpha \\
-\mathbb{P}\left[Z< \frac{log(\tilde{Z}_{1 - \alpha}) - \mu}{\sigma}\right] &= 1 -\alpha 
-\end{aligned}
-$$
+```{r, echo=T}
+Esp <- exp(mean_st + sd_st^2/2)
 
-claramente el lado derecho de la desigualdad se puede igualar al cuántil $Z_{1 - \alpha}$ de una normal estándar, luego
+f <- function(gamma){
+   beta <- ((dlnorm(Esp,mean_st,sd_st)*(Esp^(gamma+1)))/gamma)^(1/gamma)
+  (gamma*beta^gamma)/(VaR^(gamma+1))-dlnorm(VaR,mean_st,sd_st)
+}
 
-$$
-\frac{log(\tilde{Z}_{1 - \alpha}) - \mu}{\sigma} = Z_{1 - \alpha} \Leftrightarrow \tilde{Z}_{1 - \alpha} = \exp\left(\mu + Z_{1 - \alpha} \cdot \sigma \right)
-$$
+grid <- seq(0.0001,100,0.0001)
 
-ahora se soluciona la integral del lado derecho de la ecuación (2)
+Gamma <- 0
+for (i in 1:length(grid)){
+  if(f(grid[i]) <= 1e-20){
+    Gamma <- grid[i]
+    break
+  }
+}
 
-$$
-\begin{aligned}
-\mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \frac{\gamma \beta^{\gamma}}{x^{\gamma + 1}} dx  &= 1 -\alpha \\ \mathop{\mathlarger{\int}}_{\beta}^{P_{1 - \alpha}} \gamma \beta^{\gamma} x^{-\gamma - 1} dx  &= 1 - \alpha \\ 
-\frac{\gamma \beta^{\gamma} x^{-\gamma}}{-\gamma} \Big|_{\beta}^{P_{1 - \alpha}} &= 1 -\alpha \\
-\beta^{\gamma}\left[-P_{1 - \alpha}^{\gamma} + \beta^{-\gamma}\right] = 1 - \alpha &\Rightarrow P_{1 - \alpha}^{-\gamma} = \beta^{-\gamma} - (1 - \alpha) \beta^{-\gamma} \\
-&\Rightarrow P_{1 - \alpha} = \beta[1 - (1 - \alpha)]^{-\frac{1}{\gamma}} \\
-&\Rightarrow P_{1 - \alpha} = \frac{\beta}{[1 - (1 - \alpha)]^{\frac{1}{\gamma}}} \\
-&\Rightarrow P_{1 - \alpha} = \frac{\beta}{\alpha^{\frac{1}{\gamma}}}
-\end{aligned}
-$$
+beta <- function(gamma){
+  beta <- ((dlnorm(Esp,mean_st,sd_st)*(Esp^(gamma+1)))/gamma)^(1/gamma)
+  return(beta)
+}
 
-Finalmente, el sistema de ecuaciones queda determinado de la siguiente forma
-
-$$
-\begin{cases}
-\frac{\gamma \beta}{\gamma - 1} = \exp\left(\mu + \frac{\sigma^2}{2}\right) \hspace{.48in} (1) \\
-\frac{\beta}{\alpha^{\frac{1}{\gamma}}} = \exp\left(\mu + Z_{1 - \alpha} \cdot \sigma\right) \hspace{.2in} (2)
-\end{cases}
-$$
-el sistema de ecuaciones resultante es altamente no lineal y se usa una rutina de computadora para buscar los valores de $\gamma$ y $\beta$ de la distribución Pareto teniendo en cuenta que $\mu, \sigma$ y $\alpha$ están dados por las estimaciones realizadas previamente, sin embargo luego de intentar con varias rutinas y programas de computadora (R, Python y Mathematica) se llega a la conclusión de que el sistema no tiene solución en los reales con las condiciones dadas.
-
-```{r eval = F}
-library(EnvStats)
-datasim$Pareto <- c(rpareto(10000, location = 5.957219,
-                            shape = 107481557))
-
-ggplot(data = datasim) +
-  geom_density(aes(Payment_sim)) +
-  geom_density(aes(Pareto))
+Beta <- beta(Gamma)
 ```
 
 
+```{r}
+szs <- data.frame(gamma = Gamma, beta = Beta)
+kable(szs, booktabs = T, align = "c",
+      col.names = c("$\\gamma$", "$\\beta$"), escape = F,
+      caption = "Parámetros estimados de la Pareto") %>% 
+  kable_styling(latex_options = "HOLD_position")
+```
+Note que se fija una tolerancia de $1 \times 10^{-20}$,a continuación se muestra la verificación de igualdad en las ecuaciones planteadas
+
+$$
+\begin{aligned}
+\frac{`r round(Gamma, 4)` \cdot `r round(Beta, 4)`^{`r round(Gamma, 4)`}}{`r round(exp(mean_st + sd_st^2/2), 4)`^{`r round(Gamma, 4)` + 1}} &= 0.0002238755 \\
+\frac{`r round(Gamma, 4)` \cdot `r round(Beta, 4)`^{`r round(Gamma, 4)`}}{`r round(VaR, 4)`^{`r round(Gamma, 4)` + 1}} &= 0.00001967161
+\end{aligned}
+$$
+los cuales satisfcacen el sistema de ecuaciones planteado.
+
+```{r, warning=F, message=F, fig.cap="Log-Normal vs Pareto"}
+library(EnvStats)
+library(latex2exp)
+densityframe <- data.frame(Payment = c(rlnorm(10000, mean_st, sd_st),rpareto(10000, Beta, Gamma)),
+                           Tipo = c(rep("Lognormal",10000),
+                                    rep("Pareto",10000)))
+
+ggplot(densityframe, aes(x=Payment, color=Tipo)) +
+           geom_density(lwd=1) +
+           labs(y="Densidad",
+                title = "Modelos distribucionales para Payment") +
+  geom_vline(xintercept = c(exp(mean_st + sd_st^2/2), VaR),
+             linetype = "dashed") +
+  xlim(500, 12000) + 
+  geom_text(x = exp(mean_st + sd_st^2/2) + 450,
+             y = 8e-04, label="E[X]", color = "black") +
+  geom_text(x = VaR + 1400,
+             y = 8e-04, label = TeX("$VaR(\\alpha = 0.05)$"), color = "black") +
+  theme_bw() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+\newpage
 \subsection{Literal b)}
 
-Con base en la gráfique cual cree usted que serían la utilidad de la distribución de Pareto para una aseguradora o reaseguradora?
+Con base en la gráfica cual cree usted que sería la utilidad de la distribución de Pareto para una aseguradora o reaseguradora?
 
+**Solución**
 
-
-
-
+En este caso puede notarse que la distribución pareto aparentemente posee una cola más pesada, por lo cual asigna mayor probabilidad a los eventos más costosos. En ese sentido, para una reasguradora podría ser mas adecuado y de interés utilizar una distribución de pareto y con esta poder estimar sus proviciones además de prever el costo de las reclamaciones.
 
 
 
